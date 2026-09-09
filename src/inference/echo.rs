@@ -21,6 +21,11 @@ impl InferenceEngine for EchoEngine {
             tokens_per_second: None,
             elapsed_millis: super::elapsed_millis(started),
             usage: None,
+            model_kappa: None,
+            answer_kappa: None,
+            ttft_millis: None,
+            device: None,
+            locality: Some("local".to_owned()),
         })
     }
 
@@ -48,6 +53,7 @@ mod tests {
     fn prompt(text: &str) -> CompletionRequest {
         CompletionRequest {
             prompt: text.to_owned(),
+            model: None,
             ..CompletionRequest::default()
         }
     }

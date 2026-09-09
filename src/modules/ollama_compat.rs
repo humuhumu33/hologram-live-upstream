@@ -431,6 +431,7 @@ async fn chat_core(
 fn completion_request(prompt: String, options: Option<OllamaOptions>) -> CompletionRequest {
     let options = options.unwrap_or_default();
     CompletionRequest {
+        model: None,
         prompt,
         max_tokens: options.num_predict,
         temperature: options.temperature,
@@ -776,6 +777,11 @@ mod tests {
                 tokens_per_second: None,
                 elapsed_millis: 0,
                 usage: None,
+            model_kappa: None,
+            answer_kappa: None,
+            ttft_millis: None,
+            device: None,
+            locality: Some("local".to_owned()),
             })
         }
 
@@ -1355,6 +1361,11 @@ mod tests {
                     prompt_tokens: 11,
                     completion_tokens: 22,
                 }),
+                model_kappa: None,
+                answer_kappa: None,
+                ttft_millis: None,
+                device: None,
+                locality: Some("local".to_owned()),
             })
         }
 

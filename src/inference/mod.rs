@@ -25,6 +25,8 @@ use tokio_stream::Stream;
 #[derive(Debug, Clone, Default)]
 pub struct CompletionRequest {
     pub prompt: String,
+    /// Catalog model (id or name) to answer with; `None` = engine default.
+    pub model: Option<String>,
     pub max_tokens: Option<u32>,
     pub temperature: Option<f32>,
     pub seed: Option<u64>,
@@ -40,6 +42,19 @@ pub struct Completion {
     pub tokens_per_second: Option<f64>,
     pub elapsed_millis: u64,
     pub usage: Option<TokenUsage>,
+    /// Root κ of the model that produced the text, when the engine addresses
+    /// its weights: the content address of a manifest binding config,
+    /// tokenizer, every tensor, and every derived artifact.
+    pub model_kappa: Option<String>,
+    /// κ of the engine's canonical answer record binding model root, full
+    /// prompt, sampling parameters and text, when the engine seals one.
+    pub answer_kappa: Option<String>,
+    /// Time to first generated token, when the engine can observe it.
+    pub ttft_millis: Option<u64>,
+    /// Compute device the engine ran on ("cpu" / "gpu"), when known.
+    pub device: Option<String>,
+    /// Where inference ran: "local" (this machine) or "cloud" (remote).
+    pub locality: Option<String>,
 }
 
 /// Token counts an engine measured. Both fields are required: the `OpenAI`
@@ -136,6 +151,14 @@ pub trait InferenceEngine: Send + Sync {
         false
     }
     async fn complete(&self, request: CompletionRequest) -> Result<Completion>;
+    /// Verify an answer record by exact replay. Engines without a
+    /// deterministic replay path refuse.
+    async fn verify_answer(&self, kappa: &str) -> Result<String> {
+        let _ = kappa;
+        Err(LiveError::Capability(
+            "this inference engine cannot verify answer records".to_owned(),
+        ))
+    }
     async fn list_models(&self) -> Result<Vec<ModelInfo>>;
     /// Release engine-owned resources such as resident session children.
     /// Called during daemon shutdown alongside plugin teardown.
@@ -179,6 +202,12 @@ pub trait InferenceEngine: Send + Sync {
         ])))
     }
 }
+
+/// Builds an engine from the daemon's inference configuration and catalog.
+/// An embedding binary passes one of these to [`crate::app::AppState::build_with`]
+/// to supply an engine this crate does not know about.
+pub type EngineFactory =
+    Box<dyn FnOnce(&InferenceConfig, Arc<ModelCatalog>) -> Result<Arc<dyn InferenceEngine>> + Send>;
 
 pub fn engine_from_config(
     config: &InferenceConfig,
@@ -276,6 +305,7 @@ mod tests {
         let mut stream = engine
             .complete_stream(CompletionRequest {
                 prompt: "Hello there".to_owned(),
+                model: None,
                 ..CompletionRequest::default()
             })
             .await

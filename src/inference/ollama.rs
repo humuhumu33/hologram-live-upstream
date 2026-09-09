@@ -190,6 +190,11 @@ impl InferenceEngine for OllamaEngine {
             tokens_per_second,
             elapsed_millis: super::elapsed_millis(started),
             usage: TokenUsage::from_counts(parsed.prompt_eval_count, parsed.eval_count),
+            model_kappa: None,
+            answer_kappa: None,
+            ttft_millis: None,
+            device: None,
+            locality: Some("local".to_owned()),
         })
     }
 
@@ -381,6 +386,7 @@ mod tests {
         let completion = engine
             .complete(CompletionRequest {
                 prompt: "hi".to_owned(),
+                model: None,
                 ..CompletionRequest::default()
             })
             .await
@@ -410,6 +416,7 @@ mod tests {
         let completion = engine
             .complete(CompletionRequest {
                 prompt: "hi".to_owned(),
+                model: None,
                 ..CompletionRequest::default()
             })
             .await
@@ -439,6 +446,7 @@ mod tests {
         let mut stream = engine
             .complete_stream(CompletionRequest {
                 prompt: "hi".to_owned(),
+                model: None,
                 ..CompletionRequest::default()
             })
             .await
@@ -483,6 +491,7 @@ mod tests {
         let mut stream = engine
             .complete_stream(CompletionRequest {
                 prompt: "hi".to_owned(),
+                model: None,
                 ..CompletionRequest::default()
             })
             .await
@@ -544,6 +553,7 @@ mod tests {
         let mut stream = engine
             .complete_stream(CompletionRequest {
                 prompt: "hi".to_owned(),
+                model: None,
                 ..CompletionRequest::default()
             })
             .await
@@ -593,6 +603,7 @@ mod tests {
         let mut stream = engine
             .complete_stream(CompletionRequest {
                 prompt: "hi".to_owned(),
+                model: None,
                 ..CompletionRequest::default()
             })
             .await
@@ -672,6 +683,7 @@ mod tests {
         let mut stream = engine
             .complete_stream(CompletionRequest {
                 prompt: "hi".to_owned(),
+                model: None,
                 ..CompletionRequest::default()
             })
             .await

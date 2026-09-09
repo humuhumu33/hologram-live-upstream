@@ -349,6 +349,7 @@ async fn complete_chat(
     let completion = engine
         .complete(CompletionRequest {
             prompt: render_prompt(&request.messages),
+            model: None,
             max_tokens: request.max_tokens,
             temperature: request.temperature,
             seed: request.seed,
@@ -396,6 +397,7 @@ async fn stream_chat(
     let events = engine
         .complete_stream(CompletionRequest {
             prompt: render_prompt(&request.messages),
+            model: None,
             max_tokens: request.max_tokens,
             temperature: request.temperature,
             seed: request.seed,
@@ -655,6 +657,11 @@ mod tests {
                 tokens_per_second: None,
                 elapsed_millis: 0,
                 usage: None,
+                model_kappa: None,
+                answer_kappa: None,
+                ttft_millis: None,
+                device: None,
+                locality: Some("local".to_owned()),
             })
         }
 
@@ -924,6 +931,11 @@ mod tests {
                     prompt_tokens: 11,
                     completion_tokens: 22,
                 }),
+                model_kappa: None,
+                answer_kappa: None,
+                ttft_millis: None,
+                device: None,
+                locality: Some("local".to_owned()),
             })
         }
 

@@ -60,6 +60,19 @@ impl AppState {
         tracing: TracingHandle,
         extra: Vec<Arc<dyn crate::module::LiveModule>>,
     ) -> Result<Self> {
+        Self::build_with(config, tracing, extra, None).await
+    }
+
+    /// Like [`AppState::build_with_modules`], with an optional engine factory
+    /// from the embedding binary. When given, it replaces
+    /// [`crate::inference::engine_from_config`] and receives the daemon's
+    /// inference config and model catalog.
+    pub async fn build_with(
+        config: AppConfig,
+        tracing: TracingHandle,
+        extra: Vec<Arc<dyn crate::module::LiveModule>>,
+        engine: Option<crate::inference::EngineFactory>,
+    ) -> Result<Self> {
         config.create_directories()?;
         let modules = ModuleRegistry::build_with(&config.modules.enabled, extra)?;
         let store = Arc::new(ObjectStore::open(config.paths.data_dir.join("registry"))?);
@@ -99,11 +112,14 @@ impl AppState {
             store.clone(),
             config.paths.data_dir.join("models"),
         )?);
-        let engine = crate::inference::engine_from_config(
-            &config.inference,
-            models.clone(),
-            config.server.actor_mailbox_capacity,
-        )?;
+        let engine = match engine {
+            Some(factory) => factory(&config.inference, models.clone())?,
+            None => crate::inference::engine_from_config(
+                &config.inference,
+                models.clone(),
+                config.server.actor_mailbox_capacity,
+            )?,
+        };
         let chat = ChatService::new(history.clone(), engine);
         let nodes = Arc::new(NodeDirectory::open(
             config.paths.data_dir.join("control-plane/nodes.json"),

@@ -221,6 +221,11 @@ impl WeightcEngine {
             tokens_per_second: parsed.tokens_per_second,
             elapsed_millis: super::elapsed_millis(started),
             usage: TokenUsage::from_counts(parsed.prompt_tokens, parsed.completion_tokens),
+            model_kappa: None,
+            answer_kappa: None,
+            ttft_millis: None,
+            device: None,
+            locality: Some("local".to_owned()),
         })
     }
 }
@@ -304,6 +309,7 @@ mod tests {
     fn prompt(text: &str) -> CompletionRequest {
         CompletionRequest {
             prompt: text.to_owned(),
+            model: None,
             ..CompletionRequest::default()
         }
     }

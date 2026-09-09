@@ -41,6 +41,7 @@ impl ChatService {
             // raw new turn is sent — no transcript rendering.
             CompletionRequest {
                 prompt: content.clone(),
+                model: None,
                 session_key: Some(conversation_id.to_owned()),
                 ..CompletionRequest::default()
             }
@@ -50,6 +51,7 @@ impl ChatService {
             let conversation = spawn_history(move || history.get(&id)).await?;
             CompletionRequest {
                 prompt: render_transcript(&conversation, &content),
+                model: None,
                 ..CompletionRequest::default()
             }
         };
@@ -153,6 +155,11 @@ mod tests {
                 tokens_per_second: None,
                 elapsed_millis: 0,
                 usage: None,
+                model_kappa: None,
+                answer_kappa: None,
+                ttft_millis: None,
+                device: None,
+                locality: Some("local".to_owned()),
             })
         }
 
@@ -202,6 +209,11 @@ mod tests {
                 tokens_per_second: None,
                 elapsed_millis: 0,
                 usage: None,
+                model_kappa: None,
+                answer_kappa: None,
+                ttft_millis: None,
+                device: None,
+                locality: Some("local".to_owned()),
             })
         }
 

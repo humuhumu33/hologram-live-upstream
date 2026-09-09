@@ -305,6 +305,11 @@ impl WeightcSessionActor {
             tokens_per_second: parsed.tokens_per_second,
             elapsed_millis: parsed.elapsed_ms.unwrap_or_else(|| elapsed_millis(started)),
             usage: TokenUsage::from_counts(parsed.prompt_tokens, parsed.completion_tokens),
+            model_kappa: None,
+            answer_kappa: None,
+            ttft_millis: None,
+            device: None,
+            locality: Some("local".to_owned()),
         })
     }
 }
@@ -465,6 +470,7 @@ done
     fn session_prompt(key: &str, text: &str) -> CompletionRequest {
         CompletionRequest {
             prompt: text.to_owned(),
+            model: None,
             session_key: Some(key.to_owned()),
             ..CompletionRequest::default()
         }
