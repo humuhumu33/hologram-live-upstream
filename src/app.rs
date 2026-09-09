@@ -49,8 +49,19 @@ pub struct AppState {
 
 impl AppState {
     pub async fn build(config: AppConfig, tracing: TracingHandle) -> Result<Self> {
+        Self::build_with_modules(config, tracing, Vec::new()).await
+    }
+
+    /// Like [`AppState::build`], with `extra` modules from an embedding
+    /// binary registered alongside the built-ins (see
+    /// [`ModuleRegistry::build_with`]).
+    pub async fn build_with_modules(
+        config: AppConfig,
+        tracing: TracingHandle,
+        extra: Vec<Arc<dyn crate::module::LiveModule>>,
+    ) -> Result<Self> {
         config.create_directories()?;
-        let modules = ModuleRegistry::build(&config.modules.enabled)?;
+        let modules = ModuleRegistry::build_with(&config.modules.enabled, extra)?;
         let store = Arc::new(ObjectStore::open(config.paths.data_dir.join("registry"))?);
         let registry: Arc<dyn RegistryProvider> =
             Arc::new(LocalRegistryProvider::new(store.clone()));

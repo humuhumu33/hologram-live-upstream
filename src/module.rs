@@ -72,11 +72,21 @@ pub struct ModuleRegistry {
 
 impl ModuleRegistry {
     pub fn build(enabled: &[String]) -> Result<Self> {
-        let available_modules = crate::modules::builtins();
-        let available: BTreeMap<&str, Arc<dyn LiveModule>> = available_modules
+        Self::build_with(enabled, Vec::new())
+    }
+
+    /// Builds the registry from the built-in modules plus `extra` modules
+    /// supplied by an embedding binary. An extra module whose id collides
+    /// with a built-in replaces it, so a downstream crate can own a surface
+    /// (for example `/v1/chat/completions`) without forking this crate.
+    pub fn build_with(enabled: &[String], extra: Vec<Arc<dyn LiveModule>>) -> Result<Self> {
+        let mut available: BTreeMap<&str, Arc<dyn LiveModule>> = crate::modules::builtins()
             .into_iter()
             .map(|module| (module.descriptor().id, module))
             .collect();
+        for module in extra {
+            available.insert(module.descriptor().id, module);
+        }
         let enabled: BTreeSet<&str> = enabled.iter().map(String::as_str).collect();
         let mut visiting = BTreeSet::new();
         let mut visited = BTreeSet::new();
