@@ -576,13 +576,15 @@ impl AppConfig {
         if let Some(endpoint) = &self.telemetry.endpoint {
             validate_endpoint(endpoint, false)?;
         }
-        match self.inference.engine.as_str() {
-            "echo" | "weightc" | "ollama" => {}
-            other => {
-                return Err(LiveError::Config(format!(
-                    "unsupported inference.engine {other:?}; expected echo, weightc, or ollama"
-                )))
-            }
+        // Engine names are resolved when the engine is built
+        // (`inference::engine_from_config` or an embedding binary's
+        // `EngineFactory`), which is where an unknown name is refused with
+        // the names that binary actually supports. Validation only insists
+        // the field is not blank.
+        if self.inference.engine.trim().is_empty() {
+            return Err(LiveError::Config(
+                "inference.engine must not be empty".to_owned(),
+            ));
         }
         if self.inference.weightc_path.trim().is_empty() {
             return Err(LiveError::Config(
